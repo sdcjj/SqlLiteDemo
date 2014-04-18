@@ -1,0 +1,172 @@
+using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
+
+namespace MoultonDemo
+{
+    class SqlLiteDemo
+    {
+        const string connstr = @"Data Source=E:\test.db3";
+
+        /// <summary>
+        /// 创建表
+        /// </summary>
+        /// <returns></returns>
+        public string CreateTable()
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "create table Book(ID int, BookName varchar(50), Price decimal);";
+                    int i = cmd.ExecuteNonQuery();
+                    return i.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// 获取行数
+        /// </summary>
+        /// <returns></returns>
+        public string SelectRows()
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "select count(*) from Book";
+                    object i = cmd.ExecuteScalar();
+                    return i.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="book"></param>
+        /// <returns></returns>
+        public bool Create(Book book)
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "insert into Book values(@ID,@BookName,@Price);";
+                    cmd.Parameters.Add(new SQLiteParameter("ID", book.ID));
+                    cmd.Parameters.Add(new SQLiteParameter("BookName", book.BookName));
+                    cmd.Parameters.Add(new SQLiteParameter("Price", book.Price));
+                    int i = cmd.ExecuteNonQuery();
+                    return i == 1;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 更新记录
+        /// </summary>
+        /// <param name="book"></param>
+        /// <returns></returns>
+        public bool Update(Book book)
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "update Book set BookName=@BookName,Price=@Price where ID=@ID;";
+                    cmd.Parameters.Add(new SQLiteParameter("ID", book.ID));
+                    cmd.Parameters.Add(new SQLiteParameter("BookName", book.BookName));
+                    cmd.Parameters.Add(new SQLiteParameter("Price", book.Price));
+                    int i = cmd.ExecuteNonQuery();
+                    return i == 1;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 删除记录
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public bool Delete(int ID)
+        {
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "delete from Book where ID=@ID;";
+                    cmd.Parameters.Add(new SQLiteParameter("ID", ID));
+                    int i = cmd.ExecuteNonQuery();
+                    return i == 1;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取全部
+        /// </summary>
+        /// <returns></returns>
+        public List<Book> GetAll()
+        {
+            List<Book> result = new List<Book>();
+            try
+            {
+                using (SQLiteConnection conn = new SQLiteConnection(connstr))
+                {
+                    conn.Open();
+                    SQLiteCommand cmd = conn.CreateCommand();
+                    cmd.CommandText = "select * from Book;";
+                    SQLiteDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Book book = new Book();
+                        book.ID = dr.GetInt32(0);
+                        book.BookName = dr.GetString(1);
+                        book.Price = dr.GetDecimal(2);
+                        result.Add(book);
+                    }
+                }
+            }
+            catch { }
+            return result;
+        }
+    }
+
+    public class Book
+    {
+        public int ID { get; set; }
+        public string BookName { get; set; }
+        public decimal Price { get; set; }
+    }
+}
